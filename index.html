@@ -68,15 +68,25 @@
     }
 
     /* Verified Status */
-    .verified {
-      color: #4caf50;
+    .verified-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
       font-weight: bold;
     }
 
-    /* Unverified Status */
+    .verified-status .icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .verified {
+      color: #4caf50;
+    }
+
     .unverified {
       color: #e57373;
-      font-weight: bold;
     }
 
     /* Links */
@@ -89,28 +99,6 @@
     .card-content a:hover {
       text-decoration: underline;
     }
-
-    /* Footer Button */
-    .card-footer {
-      text-align: center;
-      padding: 10px 0;
-      border-top: 1px solid #e0e0e0;
-    }
-
-    .card-footer button {
-      background: #4caf50;
-      color: #ffffff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s ease;
-    }
-
-    .card-footer button:hover {
-      background: #388e3c;
-    }
   </style>
 </head>
 <body>
@@ -118,9 +106,6 @@
     <div class="card-header">Authenticity Check</div>
     <div class="card-content">
       <p>Loading product details...</p>
-    </div>
-    <div class="card-footer">
-      <button disabled>Loading...</button>
     </div>
   </div>
 
@@ -153,18 +138,18 @@
     function renderProductDetails(product) {
       const cardHeader = document.querySelector(".card-header");
       const cardContent = document.querySelector(".card-content");
-      const cardFooter = document.querySelector(".card-footer");
 
       if (!product) {
         cardHeader.textContent = "Error";
         cardContent.innerHTML = "<p>Product not found or failed to load.</p>";
-        cardFooter.innerHTML = `<button disabled>Unavailable</button>`;
         return;
       }
 
       const { id, name, description, materials, category, price, serial_number, manufacture_date } = product.product;
       const { name: creatorName, location, contact } = product.creator;
       const { authenticity_status } = product.authentication;
+
+      const isVerified = authenticity_status === "Verified";
 
       cardHeader.textContent = name;
       cardContent.innerHTML = `
@@ -179,11 +164,11 @@
         <p><strong>Creator:</strong> ${creatorName}</p>
         <p><strong>Location:</strong> ${location}</p>
         <p><strong>Contact:</strong> <a href="https://${contact}" target="_blank">${contact}</a></p>
-        <p class="${authenticity_status === "Verified" ? "verified" : "unverified"}">
+        <div class="verified-status ${isVerified ? "verified" : "unverified"}">
+          <img class="icon" src="${isVerified ? 'https://img.icons8.com/ios-filled/50/4caf50/checked.png' : 'https://img.icons8.com/ios-filled/50/e57373/cancel.png'}" alt="${isVerified ? 'Verified' : 'Unverified'}">
           ${authenticity_status}
-        </p>
+        </div>
       `;
-      cardFooter.innerHTML = `<button>Check More Details</button>`;
     }
 
     // Main logic to load and display product data
