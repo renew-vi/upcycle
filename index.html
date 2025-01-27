@@ -3,99 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upcycled Product Marketplace</title>
+  <title>Product Authentication</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       margin: 0;
-      padding: 0;
     }
     .card {
-      background-color: #fff;
-      padding: 20px;
-      margin: 20px;
+      background: #fff;
       border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      padding: 20px;
+      text-align: center;
     }
     .card h2 {
-      text-align: center;
-      color: #333;
+      margin: 0 0 10px;
     }
     .card p {
-      margin: 10px 0;
-      font-size: 16px;
+      margin: 5px 0;
+      color: #555;
     }
-    .card span {
+    .card .verified {
+      color: green;
       font-weight: bold;
     }
-    .card hr {
-      margin: 20px 0;
+    .card .unverified {
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div id="app"></div> <!-- This is where the product info will be displayed -->
+  <div class="card" id="product-card">
+    <p>Loading product details...</p>
+  </div>
 
   <script>
-    // Replace with your actual Pinata IPFS Gateway URL
-    const ipfsUrl = "https://gateway.pinata.cloud/ipfs/bafkreifs4h2gqvjo4hznxpfhahrkqjrbuit7gsyzwkob6fzgbjion3xhke"; 
+    // Function to fetch JSON data from Pinata
+    async function fetchProductData(productId) {
+      const pinataBaseUrl = "https://gateway.pinata.cloud/ipfs/";
+      const cidMapping = {
+        "RV001PLAN5PENC2": "bafybeihash-for-pencil-json", // Replace with actual CID for pencil
+        "RV002PLAN3BAG": "bafybeihash-for-bag-json", // Replace with actual CID for bag
+        // Add more product mappings here
+      };
 
-    fetch(ipfsUrl)
-      .then(response => response.json())
-      .then(data => {
-        const app = document.getElementById("app");
+      if (!cidMapping[productId]) {
+        return null; // Return null if productId is not found in mapping
+      }
 
-        // Extract product details with fallback for missing info
-        const productName = data.product.name || "Not Given";
-        const description = data.product.description || "Not Given";
-        const materials = data.product.materials || "Not Given";
-        const category = data.product.category || "Not Given";
-        const price = data.product.price || "Not Given";
-        const serialNumber = data.product.serial_number || "Not Given";
-        const manufactureDate = data.product.manufacture_date || "Not Given";
+      const url = `${pinataBaseUrl}${cidMapping[productId]}`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch data");
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+        return null;
+      }
+    }
 
-        // Extract creator details with fallback
-        const creatorName = data.creator.name || "Not Given";
-        const creatorLocation = data.creator.location || "Not Given";
-        const creatorContact = data.creator.contact || "Not Given";
+    // Function to render the product details
+    function renderProductDetails(product) {
+      const card = document.getElementById("product-card");
+      if (!product) {
+        card.innerHTML = "<p>Product not found or failed to load.</p>";
+        return;
+      }
 
-        // Authentication status (No QR code)
-        const authenticityStatus = data.authentication.authenticity_status || "Not Given";
+      const { id, name, description, materials, category, price, serial_number, manufacture_date } = product.product;
+      const { name: creatorName, location, contact } = product.creator;
+      const { authenticity_status } = product.authentication;
 
-        // Construct the product display card
-        const card = `
-          <div class="card">
-            <h2>Product Details</h2>
-            <p><span>Product Name:</span> ${productName}</p>
-            <p><span>Description:</span> ${description}</p>
-            <p><span>Materials:</span> ${materials}</p>
-            <p><span>Category:</span> ${category}</p>
-            <p><span>Price:</span> ${price}</p>
-            <p><span>Serial Number:</span> ${serialNumber}</p>
-            <p><span>Manufacture Date:</span> ${manufactureDate}</p>
-            <hr>
-            <h3>Creator</h3>
-            <p><span>Name:</span> ${creatorName}</p>
-            <p><span>Location:</span> ${creatorLocation}</p>
-            <p><span>Contact:</span> ${creatorContact}</p>
-            <hr>
-            <h3>Authentication</h3>
-            <p><span>Status:</span> ${authenticityStatus}</p>
-          </div>
-        `;
-        
-        // Insert the card into the webpage
-        app.innerHTML = card;
-      })
-      .catch(error => {
-        console.error("Error fetching JSON from IPFS:", error);
-        const app = document.getElementById("app");
-        app.innerHTML = "<p>Error loading product data. Please try again later.</p>";
-      });
+      card.innerHTML = `
+        <h2>${name}</h2>
+        <p><strong>ID:</strong> ${id}</p>
+        <p><strong>Description:</strong> ${description}</p>
+        <p><strong>Materials:</strong> ${materials}</p>
+        <p><strong>Category:</strong> ${category}</p>
+        <p><strong>Price:</strong> ${price}</p>
+        <p><strong>Serial Number:</strong> ${serial_number}</p>
+        <p><strong>Manufacture Date:</strong> ${manufacture_date}</p>
+        <p><strong>Creator:</strong> ${creatorName}</p>
+        <p><strong>Location:</strong> ${location}</p>
+        <p><strong>Contact:</strong> <a href="https://${contact}" target="_blank">${contact}</a></p>
+        <p class="${authenticity_status === "Verified" ? "verified" : "unverified"}">
+          ${authenticity_status}
+        </p>
+      `;
+    }
+
+    // Main logic to load and display product data
+    async function main() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get("id");
+
+      if (!productId) {
+        renderProductDetails(null);
+        return;
+      }
+
+      const productData = await fetchProductData(productId);
+      renderProductDetails(productData);
+    }
+
+    // Run the main function
+    main();
   </script>
 </body>
 </html>
