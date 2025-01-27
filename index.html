@@ -5,43 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Authentication</title>
   <style>
+    /* Body Styling */
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(120deg, #f5f5dc, #e8f5e9);
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
+      min-height: 100vh;
     }
+
+    /* Card Container */
     .card {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      width: 300px;
-      padding: 20px;
-      text-align: center;
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.1);
+      width: 350px;
+      overflow: hidden;
+      border: 1px solid #e0e0e0;
+      transform: scale(1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .card h2 {
+
+    /* Hover Effect */
+    .card:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 12px 36px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Card Header Image */
+    .card-header {
+      background: linear-gradient(120deg, #81c784, #66bb6a);
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    /* Content Section */
+    .card-content {
+      padding: 20px;
+    }
+
+    /* Headings */
+    .card-content h2 {
+      font-size: 22px;
+      color: #333333;
       margin: 0 0 10px;
     }
-    .card p {
+
+    /* Paragraphs */
+    .card-content p {
       margin: 5px 0;
-      color: #555;
+      font-size: 14px;
+      color: #555555;
+      line-height: 1.5;
     }
-    .card .verified {
-      color: green;
+
+    /* Verified Status */
+    .verified {
+      color: #4caf50;
       font-weight: bold;
     }
-    .card .unverified {
-      color: red;
+
+    /* Unverified Status */
+    .unverified {
+      color: #e57373;
       font-weight: bold;
+    }
+
+    /* Links */
+    .card-content a {
+      color: #42a5f5;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .card-content a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer Button */
+    .card-footer {
+      text-align: center;
+      padding: 10px 0;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .card-footer button {
+      background: #4caf50;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    .card-footer button:hover {
+      background: #388e3c;
     }
   </style>
 </head>
 <body>
   <div class="card" id="product-card">
-    <p>Loading product details...</p>
+    <div class="card-header">Authenticity Check</div>
+    <div class="card-content">
+      <p>Loading product details...</p>
+    </div>
+    <div class="card-footer">
+      <button disabled>Loading...</button>
+    </div>
   </div>
 
   <script>
@@ -49,7 +129,7 @@
     async function fetchProductData(productId) {
       const pinataBaseUrl = "https://gateway.pinata.cloud/ipfs/";
       const cidMapping = {
-        "RV001PLAN5PENC2": "bafkreifs4h2gqvjo4hznxpfhahrkqjrbuit7gsyzwkob6fzgbjion3xhke", // Replace with actual CID for pencil
+        "RV001PLAN5PENC2": "bafybeihash-for-pencil-json", // Replace with actual CID for pencil
         "RV002PLAN3BAG": "bafybeihash-for-bag-json", // Replace with actual CID for bag
         // Add more product mappings here
       };
@@ -71,9 +151,14 @@
 
     // Function to render the product details
     function renderProductDetails(product) {
-      const card = document.getElementById("product-card");
+      const cardHeader = document.querySelector(".card-header");
+      const cardContent = document.querySelector(".card-content");
+      const cardFooter = document.querySelector(".card-footer");
+
       if (!product) {
-        card.innerHTML = "<p>Product not found or failed to load.</p>";
+        cardHeader.textContent = "Error";
+        cardContent.innerHTML = "<p>Product not found or failed to load.</p>";
+        cardFooter.innerHTML = `<button disabled>Unavailable</button>`;
         return;
       }
 
@@ -81,7 +166,8 @@
       const { name: creatorName, location, contact } = product.creator;
       const { authenticity_status } = product.authentication;
 
-      card.innerHTML = `
+      cardHeader.textContent = name;
+      cardContent.innerHTML = `
         <h2>${name}</h2>
         <p><strong>ID:</strong> ${id}</p>
         <p><strong>Description:</strong> ${description}</p>
@@ -97,6 +183,7 @@
           ${authenticity_status}
         </p>
       `;
+      cardFooter.innerHTML = `<button>Check More Details</button>`;
     }
 
     // Main logic to load and display product data
